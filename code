@@ -1,0 +1,100 @@
+from PyPDF2 import PdfReader
+uploaded_file = st.file_uploader("Choose a File to Upload", type=["pdf", "docx", "txt"])
+if uploaded_file is not None:
+    reader = PdfReader(uploaded_file)
+
+    def main():
+        data = reader.getDocumentInfo()
+
+        st.markdown("#")
+        "----Metadata of the file----"
+
+        for metadata in data:
+
+            st.write(metadata + ":" + data[metadata])
+
+    if __name__ == '__main__':
+        main()
+    test = ""
+    a=""
+    for page in reader.pages:
+        a += page.extract_text() + "\n"
+        a+=page.extract_text() + "\n"
+    for page in reader.pages:
+        test += page.extract_text() + "\n"
+        test += page.extract_text() + "\n"
+    from autocorrect import Speller
+    from nltk.tokenize import word_tokenize
+
+    from time import sleep
+
+    st.markdown("#")
+    progress = st.progress(0)
+
+    for i in range(100):
+        progress.progress(i)
+        sleep(0.1)
+
+    def to_lower(test):
+
+        # Spell check the words
+        spell = Speller(lang='en')
+
+        test = spell(test)
+
+        return ' '.join([w.lower() for w in word_tokenize(test)])
+
+
+    lower_case = to_lower(test)
+
+
+    def clean_text(lower_case):
+        # split text phrases into words
+        words = nltk.word_tokenize(lower_case)
+
+        # Create a list of all the punctuations we wish to remove
+        punctuations = ['.', ',', '/', '!', '?', ';', ':', '(', ')', '[', ']', '-', '_', '%']
+
+        # Remove all the special characters
+        punctuations = re.sub(r'\W', ' ', str(lower_case))
+
+        # Initialize the stopwords variable, which is a list of words ('and', 'the', 'i', 'yourself', 'is') that do not hold much values as key words
+        stop_words = stopwords.words('english')
+
+        # Getting rid of all the words that contain numbers in them
+        w_num = re.sub('\w*\d\w*', '', lower_case).strip()
+
+        # remove all single characters
+        lower_case = re.sub(r'\s+[a-zA-Z]\s+', ' ', lower_case)
+
+        # Substituting multiple spaces with single space
+        lower_case = re.sub(r'\s+', ' ', lower_case, flags=re.I)
+
+        # Removing prefixed 'b'
+        lower_case = re.sub(r'^b\s+', '', lower_case)
+        # Removing URL
+        url = re.sub(r"http\S+", "", lower_case)
+
+        # Removing non-english characters
+        lower_case = re.sub(r'^b\s+', '', lower_case)
+
+        # Return keywords which are not in stop words
+        keywords = [word for word in words if not word in stop_words and word in punctuations and word in w_num]
+
+        return keywords
+
+
+    # Lemmatize the words
+    wordnet_lemmatizer = WordNetLemmatizer()
+
+    lemmatized_word = [wordnet_lemmatizer.lemmatize(word) for word in clean_text(lower_case)]
+
+    # lets print out the output from our function above and see how the data looks like
+    clean_data = ' '.join(lemmatized_word)
+
+    sub_str = "References"
+
+    re = clean_data.split(sub_str)
+    test = re[0] + sub_str
+    test = ''.join([i for i in test if not i.isdigit()])
+    a = a+ sub_str
